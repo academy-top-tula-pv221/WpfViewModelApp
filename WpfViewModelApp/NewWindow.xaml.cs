@@ -1,5 +1,4 @@
-﻿using Microsoft.Xaml.Behaviors;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,24 +10,24 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace WpfViewModelApp
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Логика взаимодействия для NewWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class NewWindow : Window
     {
-        public MainWindow()
+        public NewWindow(ref Employee employee)
         {
             InitializeComponent();
+            this.DataContext = employee;
+        }
 
-            //var trigger = new Microsoft.Xaml.Behaviors.EventTrigger("MouseDoubleClick");
-            //Interaction.GetTriggers(btnDuplicate).Add(trigger);
-
-            this.DataContext = new ApplicationViewModel(new EmployeeDialogService(), new JsonFileService());
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }

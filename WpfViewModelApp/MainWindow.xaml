@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:local="clr-namespace:WpfViewModelApp"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
@@ -12,12 +13,30 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="28"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="0.2*"/>
         </Grid.RowDefinitions>
+        <Menu Grid.Column="0"
+              Grid.Row="0"
+              Grid.ColumnSpan="2"
+              FontSize="20">
+            <MenuItem Header="File">
+                <MenuItem Header="Open" Command="{Binding CommandOpen}"/>
+                <MenuItem Header="Save" Command="{Binding CommandSave}"/>
+            </MenuItem>
+        </Menu>
         <ListBox Grid.Column="0"
+                 Grid.Row="1"
                  ItemsSource="{Binding Employees}"
                  SelectedItem="{Binding SelectedEmployee}">
+            <ListBox.InputBindings>
+                <KeyBinding Key="Delete" 
+                    Command="{Binding CommandRemove}"
+                    CommandParameter="{Binding SelectedEmployee}"/>
+                <KeyBinding Key="Insert" 
+                    Command="{Binding CommandAdd}"/>
+            </ListBox.InputBindings>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel>
@@ -30,8 +49,16 @@
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
+            <i:Interaction.Triggers>
+                <i:EventTrigger EventName="MouseDoubleClick">
+                    <i:InvokeCommandAction
+                            Command="{Binding CommandDublicate}"
+                            CommandParameter="{Binding SelectedEmployee}"/>
+                </i:EventTrigger>
+            </i:Interaction.Triggers>
         </ListBox>
-        <StackPanel Grid.Column="1" 
+        <StackPanel Grid.Column="1"
+                    Grid.Row="1"
                     Margin="20"
                     DataContext="{Binding SelectedEmployee}">
             <TextBlock FontSize="26"  Text="Name:"/>
@@ -43,7 +70,7 @@
             <TextBox FontSize="30" Text="{Binding Salary, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
         <StackPanel Grid.Column="0"
-                    Grid.Row="1"
+                    Grid.Row="2"
                     Grid.ColumnSpan="2"
                     Orientation="Horizontal">
             <Button Content="Add New"
@@ -51,6 +78,12 @@
                     Margin="10"
                     Padding="10, 0"
                     Command="{Binding CommandAdd}"/>
+            <Button Content="Remove"
+                    FontSize="26"
+                    Margin="10"
+                    Padding="10, 0"
+                    Command="{Binding CommandRemove}"
+                    CommandParameter="{Binding SelectedEmployee}"/>
         </StackPanel>
     </Grid>
 </Window>

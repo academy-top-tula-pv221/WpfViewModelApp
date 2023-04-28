@@ -12,10 +12,24 @@ namespace WpfViewModelApp
 {
     internal class ApplicationViewModel : INotifyPropertyChanged
     {
-        Employee selectedEmployee;
-        public ObservableCollection<Employee> Employees { get; set; }
+        IDialogService dialogService;
+        IFileService fileService;
 
-        public RoutedCommand CommandEmployeeAdd { get; set; } = new();
+
+        Employee selectedEmployee;
+        public Employee SelectedEmployee
+        {
+            get => selectedEmployee;
+            set
+            {
+                if (selectedEmployee != value)
+                {
+                    selectedEmployee = value;
+                    OnPropertyChanged(nameof(SelectedEmployee));
+                }
+            }
+        }
+        public ObservableCollection<Employee> Employees { get; set; }
 
         EmployeeCommand commandAdd;
         public EmployeeCommand CommandAdd
@@ -29,28 +43,123 @@ namespace WpfViewModelApp
                               obj =>
                               {
                                   Employee employee = new();
-                                  Employees.Insert(0, employee);
-                                  SelectedEmployee = employee;
+                                  NewWindow newWindow = new(ref employee);
+                                  if(newWindow.ShowDialog() == true)
+                                  {
+                                      Employees.Insert(0, employee);
+                                      SelectedEmployee = employee;
+                                  }
+                                  
                               }
                         )
                     );
             }
         }
-        public Employee SelectedEmployee
+
+        EmployeeCommand commandRemove;
+        public EmployeeCommand CommandRemove
         {
-            get => selectedEmployee;
-            set
+            get
             {
-                if (selectedEmployee != value)
-                {
-                    selectedEmployee = value;
-                    OnPropertyChanged(nameof(SelectedEmployee));
-                }
+                return commandRemove ??
+                    (commandRemove = new EmployeeCommand(
+                        obj =>
+                        {
+                            if (obj is Employee employee)
+                            {
+                                Employees.Remove(employee);
+                            }
+
+                        },
+                        obj => Employees.Count > 0
+                        ));
+            }
+        }
+        
+        EmployeeCommand commandDublicate;
+        public EmployeeCommand CommandDublicate
+        {
+            get
+            {
+                return commandDublicate ??
+                    (commandDublicate = new EmployeeCommand(
+                        obj =>
+                        {
+                            if (obj is Employee employee)
+                            {
+                                Employee employeeDublicte = new Employee()
+                                {
+                                    Name = employee.Name,
+                                    BirthDate = employee.BirthDate,
+                                    Salary = employee.Salary
+                                };
+                                Employees.Insert(0, employeeDublicte);
+                            }
+                        },
+                        obj => Employees.Count > 0
+                    )); ;
             }
         }
 
-        public ApplicationViewModel()
+        EmployeeCommand commandSave;
+        public EmployeeCommand CommandSave
         {
+            get
+            {
+                return commandSave ??
+                    (commandSave = new(
+                        obj =>
+                        {
+                            try
+                            {
+                                if(dialogService.SaveFile() == true)
+                                {
+                                    fileService.Save(dialogService.FileName, Employees.ToList());
+                                    dialogService.Message("Employees saved");
+                                }
+                            }
+                            catch(Exception ex)
+                            {
+                                dialogService.Message(ex.ToString());
+                            }
+                        }
+                    ));
+            }
+        }
+        
+        EmployeeCommand commandOpen;
+        public EmployeeCommand CommandOpen
+        {
+            get
+            {
+                return commandOpen ??
+                    (commandOpen = new(
+                        obj =>
+                        {
+                            try
+                            {
+                                if(dialogService.OpenFile() == true)
+                                {
+                                    var employees = fileService.Open(dialogService.FileName);
+                                    Employees.Clear();
+                                    foreach (var e in employees)
+                                        Employees.Add(e);
+                                    dialogService.Message("Employees readed");
+                                }
+                            }
+                            catch( Exception ex )
+                            {
+                                dialogService.Message(ex.ToString());
+                            }
+                        }
+                    ));
+            }
+        }
+        public ApplicationViewModel(IDialogService dialogService, IFileService fileService)
+        {
+            this.dialogService = dialogService;
+            this.fileService = fileService;
+
             Employees = new ObservableCollection<Employee>()
             {
                 new(){ Name = "Bobby", BirthDate = new DateTime(1999, 4, 11), Salary = 90000},
